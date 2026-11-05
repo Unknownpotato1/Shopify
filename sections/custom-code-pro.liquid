@@ -1,0 +1,188 @@
+{%- comment -%}
+  =====================================================================
+  Custom Code (Pro) section — added by Z.ai
+  - Renders custom Liquid/HTML
+  - Adds scoped custom CSS (auto-wrapped in this section's unique ID)
+  - Adds scoped custom JS (loaded only when section is present)
+  - Optional heading + subheading
+  - Anchor ID support for in-page nav (#my-section)
+  - Color scheme, width, padding controls
+  Safe to delete this file if not needed — won't affect anything else.
+  {%- endcomment -%}
+
+{%- liquid
+  assign section_id = section.id
+  assign anchor_id = section.settings.anchor_id | default: section_id
+-%}
+
+<div
+  id="{{ anchor_id }}"
+  class="custom-code-pro section section--{{ section.settings.section_width }} spacing-style color-{{ section.settings.color_scheme }}"
+  style="{% render 'spacing-padding', settings: section.settings %}"
+>
+  {%- if section.settings.heading != blank -%}
+    <h2 class="custom-code-pro__heading {{ section.settings.heading_size }}">
+      {{ section.settings.heading | escape }}
+    </h2>
+  {%- endif -%}
+
+  {%- if section.settings.subheading != blank -%}
+    <p class="custom-code-pro__subheading">{{ section.settings.subheading | escape }}</p>
+  {%- endif -%}
+
+  <div class="custom-code-pro__content">
+    {{ section.settings.custom_liquid }}
+  </div>
+</div>
+
+{%- if section.settings.custom_css != blank -%}
+  <style>
+    /* Scoped CSS for section #{{ section_id }} */
+    #{{ anchor_id }} {
+      {{ section.settings.custom_css }}
+    }
+  </style>
+{%- endif -%}
+
+{%- if section.settings.custom_js != blank -%}
+  <script>
+    (function () {
+      var root = document.getElementById('{{ anchor_id }}');
+      if (!root) return;
+      try {
+        {{ section.settings.custom_js }}
+      } catch (e) {
+        console.error('Custom JS error in section #{{ section_id }}:', e);
+      }
+    })();
+  </script>
+{%- endif -%}
+
+{% stylesheet %}
+  .custom-code-pro__heading {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+  }
+  .custom-code-pro__heading--small { font-size: 1.25rem; }
+  .custom-code-pro__heading--medium { font-size: 1.75rem; }
+  .custom-code-pro__heading--large { font-size: 2.25rem; }
+  .custom-code-pro__subheading {
+    margin: 0 0 1.25rem;
+    opacity: 0.75;
+  }
+  .custom-code-pro__content {
+    width: 100%;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Custom Code (Pro)",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading (optional)"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Heading size",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "header",
+      "content": "Custom code"
+    },
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "Custom Liquid / HTML",
+      "info": "Paste app snippets, embeds, or any Liquid/HTML. Learn: https://shopify.dev/docs/api/liquid"
+    },
+    {
+      "type": "textarea",
+      "id": "custom_css",
+      "label": "Custom CSS (scoped to this section)",
+      "info": "Auto-wrapped in #<section-id> so styles only apply here. Don't include the selector — just the rules, e.g. 'h2 { color: red; }'"
+    },
+    {
+      "type": "textarea",
+      "id": "custom_js",
+      "label": "Custom JavaScript (scoped to this section)",
+      "info": "Runs only when this section is on the page. 'root' variable = this section's root element. Wrapped in try/catch."
+    },
+    {
+      "type": "text",
+      "id": "anchor_id",
+      "label": "Anchor ID",
+      "info": "Used as the section's HTML id (lets you link to #this-id). Defaults to a unique auto-generated id."
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Width",
+      "options": [
+        { "value": "page-width", "label": "Page width" },
+        { "value": "full-width", "label": "Full width" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "default": 20
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Code (Pro)",
+      "category": "Layout"
+    }
+  ]
+}
+{% endschema %}
