@@ -1,0 +1,744 @@
+{%- doc -%}
+  EVIOLA - Normal Buy Now + Custom Sticky Action Bar
+
+  Sticky bar:
+  Quick Chat > Wishlist > Add to Cart
+
+  Normal Buy Now remains in its original position.
+  Sticky bar appears after original product buttons
+  have been seen and then scrolled out of the viewport.
+{%- enddoc -%}
+
+{% liquid
+  assign product = block.settings.product
+
+  if request.visual_preview_mode and product == blank
+    assign product = collections.all.products.first
+  endif
+%}
+
+<span
+  class="accelerated-checkout-block accelerated-checkout-block--{{ block.id }}"
+  data-eviola-checkout-block
+  {{ block.shopify_attributes }}
+>
+
+  <!-- ==========================================
+       NORMAL BUY NOW BUTTON
+       ========================================== -->
+
+  {% if product != blank and can_add_to_cart %}
+
+    <span class="normal-buy-now">
+
+      {%- form 'product', product -%}
+        {{ form | payment_button }}
+      {%- endform -%}
+
+    </span>
+
+  {% endif %}
+
+
+  <!-- ==========================================
+       BUY NOW BANNER
+       ========================================== -->
+
+  {% if product != blank and can_add_to_cart %}
+
+    <div class="buy-now-banner">
+
+      <img
+        src="https://raw.githubusercontent.com/Unknownpotato1/Storage-/main/buy-now-banner.jpg"
+        alt="Buy now"
+        loading="lazy"
+      >
+
+    </div>
+
+  {% endif %}
+
+
+  <!-- ==========================================
+       EVIOLA STICKY MOBILE ACTION BAR
+       ========================================== -->
+
+  {% if product != blank and can_add_to_cart %}
+
+    <div
+      class="sticky-buy-buttons"
+      data-sticky-buy-buttons
+    >
+
+      <div class="eviola-sticky-actions">
+
+        <!-- QUICK CHAT -->
+
+        <button
+          type="button"
+          class="eviola-sticky-icon"
+          data-sticky-quick-chat
+          aria-label="Quick Chat"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#5E4231"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+            <path d="M8 10h8"/>
+            <path d="M8 14h5"/>
+          </svg>
+
+        </button>
+
+
+        <!-- WISHLIST -->
+
+        <button
+          type="button"
+          class="eviola-sticky-icon"
+          data-sticky-wishlist
+          aria-label="Add to wishlist"
+          aria-pressed="false"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#5E4231"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+
+        </button>
+
+
+        <!-- ADD TO CART -->
+
+        <button
+          type="button"
+          class="eviola-sticky-add"
+          data-sticky-add-to-cart
+        >
+          {{ add_to_cart_text }}
+        </button>
+
+      </div>
+
+    </div>
+
+  {% endif %}
+
+</span>
+
+
+{% stylesheet %}
+
+/* =========================================================
+   NORMAL BUY NOW
+   ========================================================= */
+
+.accelerated-checkout-block {
+  display: block;
+  width: 100%;
+}
+
+.normal-buy-now {
+  display: block;
+  width: 100%;
+}
+
+.normal-buy-now form {
+  width: 100%;
+}
+
+.normal-buy-now .shopify-payment-button {
+  width: 100%;
+}
+
+.normal-buy-now .shopify-payment-button__button {
+  width: 100%;
+  height: 48px !important;
+  min-height: 48px !important;
+
+  background: #5E4231 !important;
+  color: #F8F7F4 !important;
+  -webkit-text-fill-color: #F8F7F4 !important;
+
+  border: none !important;
+  border-radius: 0 !important;
+
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+
+  padding: 0 20px !important;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease !important;
+}
+
+.normal-buy-now .shopify-payment-button__button:hover {
+  background: #765640 !important;
+}
+
+.normal-buy-now .shopify-payment-button__button:focus {
+  outline: none !important;
+}
+
+
+/* =========================================================
+   STICKY BAR - HIDDEN BY DEFAULT
+   ========================================================= */
+
+.sticky-buy-buttons {
+  position: fixed !important;
+
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+
+  width: 100% !important;
+
+  z-index: 9999 !important;
+
+  padding: 10px 14px !important;
+
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+
+  border: none !important;
+  box-shadow: none !important;
+
+  transform: translateY(100%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease,
+    visibility 0.3s ease;
+}
+
+
+/* =========================================================
+   STICKY BAR - VISIBLE
+   ========================================================= */
+
+.sticky-buy-buttons.is-visible {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+
+/* =========================================================
+   REMOVE OLD BACKGROUND AND SHIMMER
+   ========================================================= */
+
+.sticky-buy-buttons::before,
+.sticky-buy-buttons::after,
+.sticky-buy-buttons .sticky-button-wrapper,
+.sticky-buy-buttons .sticky-button-wrapper::before {
+  display: none !important;
+}
+
+
+/* =========================================================
+   ACTION BAR LAYOUT
+   ========================================================= */
+
+.eviola-sticky-actions {
+  display: flex !important;
+  align-items: center !important;
+
+  width: 100% !important;
+  gap: 10px !important;
+
+  background: transparent !important;
+}
+
+
+/* =========================================================
+   QUICK CHAT + WISHLIST CIRCULAR BUTTONS
+   ========================================================= */
+
+.eviola-sticky-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  flex: 0 0 46px !important;
+
+  width: 46px !important;
+  min-width: 46px !important;
+  height: 46px !important;
+  min-height: 46px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border: none !important;
+  border-radius: 50% !important;
+
+  background: #EFE7DC !important;
+  background-color: #EFE7DC !important;
+
+  color: #5E4231 !important;
+  -webkit-text-fill-color: #5E4231 !important;
+
+  box-shadow: none !important;
+
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.eviola-sticky-icon svg {
+  display: block !important;
+
+  width: 21px !important;
+  height: 21px !important;
+
+  fill: none !important;
+  stroke: #5E4231 !important;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   WISHLIST ACTIVE STATE
+   ========================================================= */
+
+.eviola-sticky-icon[aria-pressed="true"] svg {
+  fill: #5E4231 !important;
+  stroke: #5E4231 !important;
+}
+
+
+/* =========================================================
+   ADD TO CART PILL BUTTON
+   ========================================================= */
+
+.eviola-sticky-add {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  flex: 1 1 auto !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+
+  height: 46px !important;
+  min-height: 46px !important;
+
+  padding: 0 18px !important;
+  margin: 0 !important;
+
+  border: none !important;
+  border-radius: 50px !important;
+
+  background: #5E4231 !important;
+  background-color: #5E4231 !important;
+
+  color: #F8F7F4 !important;
+  -webkit-text-fill-color: #F8F7F4 !important;
+
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+
+  letter-spacing: 0.4px !important;
+  text-transform: uppercase !important;
+
+  box-shadow: none !important;
+
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+
+  transition: background-color 0.2s ease !important;
+}
+
+.eviola-sticky-add:hover {
+  background: #765640 !important;
+  background-color: #765640 !important;
+}
+
+.eviola-sticky-add:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+
+/* =========================================================
+   MOBILE ONLY
+   ========================================================= */
+
+@media screen and (min-width: 768px) {
+  .sticky-buy-buttons {
+    display: none !important;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media screen and (max-width: 360px) {
+
+  .sticky-buy-buttons {
+    padding: 9px 10px !important;
+  }
+
+  .eviola-sticky-actions {
+    gap: 8px !important;
+  }
+
+  .eviola-sticky-icon {
+    flex-basis: 42px !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+  }
+
+  .eviola-sticky-add {
+    height: 42px !important;
+    min-height: 42px !important;
+    font-size: 12px !important;
+  }
+
+}
+
+
+/* =========================================================
+   BUY NOW BANNER
+   ========================================================= */
+
+.buy-now-banner {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.buy-now-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+{% endstylesheet %}
+
+
+<script>
+
+(function () {
+
+  function initStickyBuyButtons() {
+
+    const roots = document.querySelectorAll(
+      '[data-eviola-checkout-block]:not([data-sticky-initialized="true"])'
+    );
+
+    roots.forEach(function (root) {
+
+      root.setAttribute('data-sticky-initialized', 'true');
+
+      /* FIND STICKY BAR */
+
+      const stickyBar = root.querySelector(
+        '[data-sticky-buy-buttons]'
+      );
+
+      if (!stickyBar) return;
+
+
+      /* FIND ORIGINAL PRODUCT BUTTONS */
+
+      const buyButtonsBlock = root.closest(
+        '.buy-buttons-block'
+      );
+
+      if (!buyButtonsBlock) return;
+
+      const originalButtons = buyButtonsBlock.querySelector(
+        '.product-form-buttons'
+      );
+
+      if (!originalButtons) return;
+
+
+      /* ORIGINAL ADD TO CART */
+
+      function getOriginalAddToCart() {
+
+        return originalButtons.querySelector(
+          'button[name="add"], .add-to-cart-button'
+        );
+
+      }
+
+
+      /* STICKY BUTTONS */
+
+      const stickyAddToCart = stickyBar.querySelector(
+        '[data-sticky-add-to-cart]'
+      );
+
+      const stickyQuickChat = stickyBar.querySelector(
+        '[data-sticky-quick-chat]'
+      );
+
+      const stickyWishlist = stickyBar.querySelector(
+        '[data-sticky-wishlist]'
+      );
+
+
+      /* SYNC ADD TO CART DISABLED STATE */
+
+      function syncButtons() {
+
+        const originalAddToCart = getOriginalAddToCart();
+
+        if (stickyAddToCart) {
+
+          stickyAddToCart.disabled =
+            !originalAddToCart ||
+            originalAddToCart.disabled;
+
+        }
+
+      }
+
+
+      /* STICKY ADD TO CART CLICK */
+
+      if (stickyAddToCart) {
+
+        stickyAddToCart.addEventListener('click', function () {
+
+          const originalAddToCart = getOriginalAddToCart();
+
+          if (
+            originalAddToCart &&
+            !originalAddToCart.disabled
+          ) {
+
+            originalAddToCart.click();
+
+          }
+
+        });
+
+      }
+
+
+      /* STICKY QUICK CHAT CLICK */
+
+      if (stickyQuickChat) {
+
+        stickyQuickChat.addEventListener('click', function () {
+
+          const originalChat = document.querySelector(
+            '.quick-chat-root [data-open-chat]'
+          );
+
+          if (originalChat) {
+            originalChat.click();
+          }
+
+        });
+
+      }
+
+
+      /* STICKY WISHLIST CLICK */
+
+      if (stickyWishlist) {
+
+        stickyWishlist.addEventListener('click', function () {
+
+          const originalWishlist = document.querySelector(
+            '.quick-chat-root [data-wishlist]'
+          );
+
+          if (originalWishlist) {
+            originalWishlist.click();
+          }
+
+        });
+
+      }
+
+
+      /* INTERSECTION OBSERVER */
+
+      let originalButtonsSeen = false;
+
+
+      /* FOOTER SPACE */
+
+      function updateFooterSpace() {
+
+        const footer = document.querySelector('footer');
+
+        if (!footer) return;
+
+        if (stickyBar.classList.contains('is-visible')) {
+
+          const stickyHeight =
+            stickyBar.getBoundingClientRect().height;
+
+          footer.style.paddingBottom =
+            stickyHeight + 'px';
+
+        } else {
+
+          footer.style.paddingBottom = '';
+
+        }
+
+      }
+
+
+      /* OBSERVE ORIGINAL BUTTONS */
+
+      const observer = new IntersectionObserver(
+        function (entries) {
+
+          const entry = entries[0];
+
+          if (entry.isIntersecting) {
+
+            originalButtonsSeen = true;
+
+            stickyBar.classList.remove('is-visible');
+
+            updateFooterSpace();
+
+          } else if (originalButtonsSeen) {
+
+            stickyBar.classList.add('is-visible');
+
+            updateFooterSpace();
+
+          }
+
+          syncButtons();
+
+        },
+        {
+          threshold: 0
+        }
+      );
+
+      observer.observe(originalButtons);
+
+
+      /* RESIZE */
+
+      window.addEventListener('resize', function () {
+        updateFooterSpace();
+      });
+
+
+      /* WATCH ORIGINAL BUTTON STATE */
+
+      const mutationObserver = new MutationObserver(function () {
+        syncButtons();
+      });
+
+      mutationObserver.observe(originalButtons, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ['disabled', 'class']
+      });
+
+
+      /* INITIAL SYNC */
+
+      syncButtons();
+
+    });
+
+  }
+
+
+  /* PAGE LOAD */
+
+  if (document.readyState === 'loading') {
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      initStickyBuyButtons
+    );
+
+  } else {
+
+    initStickyBuyButtons();
+
+  }
+
+
+  /* SHOPIFY DYNAMIC RENDERING */
+
+  setTimeout(initStickyBuyButtons, 500);
+
+
+})();
+
+</script>
+
+
+{% schema %}
+
+{
+  "name": "Eviola Sticky Actions",
+  "tag": null,
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Product"
+    },
+    {
+      "type": "select",
+      "id": "style_class",
+      "label": "Add to Cart Button Style",
+      "options": [
+        {
+          "value": "button",
+          "label": "Primary"
+        },
+        {
+          "value": "button-secondary",
+          "label": "Secondary"
+        }
+      ],
+      "default": "button-secondary"
+    }
+  ]
+}
+
+{% endschema %}

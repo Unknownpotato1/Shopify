@@ -1,0 +1,96 @@
+<style>
+  .custom-video-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns on all screens */
+    width: 100%;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  .custom-video-cell {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .custom-video-cell a {
+    display: block;
+    width: 100%;
+  }
+
+  .custom-video-cell video {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+  }
+
+  .custom-overlay {
+    position: absolute;
+    bottom: 8px;
+    left: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Remove Shopify spacing */
+  .three-video-grid-section {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+}
+
+.three-video-grid-section .custom-video-grid {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+}
+</style>
+
+<div class="custom-video-grid">
+  <div class="custom-video-cell">
+    <a href="/collections/earrings">
+      <video autoplay muted loop playsinline>
+        <source src="https://cdn.shopify.com/videos/c/o/v/50288f1599b34163b7a337f82bec0f15.mp4" type="video/mp4">
+      </video>
+      <div class="custom-overlay"></div>
+    </a>
+  </div>
+
+  <div class="custom-video-cell">
+    <a href="/collections/fingering">
+      <video autoplay muted loop playsinline>
+        <source src="https://cdn.shopify.com/videos/c/o/v/c153fa7891084bb38fbb269f717f2ff7.mp4" type="video/mp4">
+      </video>
+      <div class="custom-overlay"></div>
+    </a>
+  </div>
+
+  <div class="custom-video-cell">
+    <a href="/collections/necklace">
+      <video autoplay muted loop playsinline>
+        <source src="https://cdn.shopify.com/videos/c/o/v/1aa8a0fca0454605afa5c15dc651502c.mp4" type="video/mp4">
+      </video>
+      <div class="custom-overlay"></div>
+    </a>
+  </div>
+</div>
+
+  {% schema %}
+{
+  "name": "Three Video Grid",
+  "tag": "section",
+  "class": "three-video-grid-section",
+  "settings": [],
+  "presets": [
+    {
+      "name": "Three Video Grid"
+    }
+  ]
+}
+{% endschema %}

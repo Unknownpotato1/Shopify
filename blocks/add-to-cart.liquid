@@ -1,0 +1,375 @@
+{%- doc -%}
+  This block displays a Quantity picker followed by the Add to Cart button.
+
+  Add to Cart uses the original Shopify add-to-cart functionality.
+  Quantity syncs with the product form's quantity input.
+{%- enddoc -%}
+
+{% liquid
+  assign class = 'add-to-cart-button ' | append: block.settings.style_class
+  assign id = 'BuyButtons-ProductSubmitButton-' | append: block.id
+%}
+
+<div
+  class="add-to-cart-qty-wrapper"
+  data-qty-add-wrapper
+  {{ block.shopify_attributes }}
+  style="--add-to-cart-font-case: {{ settings.button_text_case }};"
+>
+
+  <!-- =====================================================
+       QUANTITY
+       ===================================================== -->
+
+  <div class="qty-picker" data-qty-picker>
+
+    <button
+      type="button"
+      data-qty-minus
+      aria-label="Decrease quantity"
+    >−</button>
+
+    <span data-qty-value aria-live="polite">1</span>
+
+    <button
+      type="button"
+      data-qty-plus
+      aria-label="Increase quantity"
+    >+</button>
+
+  </div>
+
+
+  <!-- =====================================================
+       ADD TO CART
+       ===================================================== -->
+
+  <span class="add-to-cart-container">
+
+    {% render 'add-to-cart-button',
+      id: id,
+      class: class,
+      can_add_to_cart: can_add_to_cart,
+      product: block.settings.product,
+      add_to_cart_text: add_to_cart_text
+    %}
+
+  </span>
+
+</div>
+
+
+{% stylesheet %}
+
+/* =========================================================
+   MAIN WRAPPER
+   ========================================================= */
+
+.add-to-cart-qty-wrapper {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  gap: 8px;
+  align-items: stretch;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   QUANTITY PICKER
+   ========================================================= */
+
+.add-to-cart-qty-wrapper .qty-picker {
+  flex: 0 0 34%;
+  width: 34%;
+  min-width: 0;
+  height: 48px;
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: #F8F7F4;
+  border: 1px solid #DCCDBB;
+}
+
+.add-to-cart-qty-wrapper .qty-picker button {
+  width: 38px;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+
+  border: none;
+  background: #F8F7F4;
+  color: #5E4231;
+
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-to-cart-qty-wrapper .qty-picker button:hover {
+  background: #f5f5f5;
+}
+
+.add-to-cart-qty-wrapper .qty-picker button:focus {
+  outline: none;
+}
+
+.add-to-cart-qty-wrapper .qty-picker span {
+  font-size: 16px;
+  color: #5E4231;
+  min-width: 20px;
+  text-align: center;
+}
+
+
+/* =========================================================
+   ADD TO CART
+   ========================================================= */
+
+.add-to-cart-container {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  box-sizing: border-box;
+}
+
+.add-to-cart-container add-to-cart-component {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+
+/* =========================================================
+   ACTUAL SHOPIFY ADD TO CART BUTTON
+   ========================================================= */
+
+.add-to-cart-container button.add-to-cart-button {
+  width: 100% !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  box-sizing: border-box;
+
+  background: #F8F7F4 !important;
+  color: #5e4231 !important;
+
+  border: 1px solid #DCCDBB !important;
+  border-radius: 0 !important;
+
+  padding: 0 16px !important;
+
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+}
+
+.add-to-cart-container button.add-to-cart-button:hover {
+  background: #f5f5f5 !important;
+  color: #000000 !important;
+}
+
+.add-to-cart-container button.add-to-cart-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   SHOPIFY BUTTON INNER CONTENT
+   ========================================================= */
+
+.add-to-cart-container .add-to-cart-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-to-cart-container .add-to-cart-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-to-cart-container .add-to-cart-text--added {
+  width: 100%;
+  height: 100%;
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media screen and (max-width: 360px) {
+
+  .add-to-cart-qty-wrapper .qty-picker {
+    flex-basis: 38%;
+    width: 38%;
+  }
+
+  .add-to-cart-qty-wrapper .qty-picker button {
+    width: 32px;
+  }
+
+  .add-to-cart-container button.add-to-cart-button {
+    padding: 0 8px !important;
+    font-size: 13px !important;
+  }
+
+}
+
+
+/* =========================================================
+   PREVENT HORIZONTAL OVERFLOW
+   ========================================================= */
+
+@media screen and (max-width: 767px) {
+
+  .add-to-cart-qty-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+}
+
+{% endstylesheet %}
+
+
+<script>
+(function () {
+
+  function initQtyPickers() {
+
+    const wrappers = document.querySelectorAll(
+      '[data-qty-add-wrapper]:not([data-qty-initialized="true"])'
+    );
+
+    wrappers.forEach(function (wrapper) {
+
+      wrapper.setAttribute('data-qty-initialized', 'true');
+
+      const qtyValue = wrapper.querySelector('[data-qty-value]');
+      const qtyMinus = wrapper.querySelector('[data-qty-minus]');
+      const qtyPlus = wrapper.querySelector('[data-qty-plus]');
+
+      let quantity = 1;
+
+      function updateQuantity() {
+
+        if (qtyValue) {
+          qtyValue.textContent = quantity;
+        }
+
+        const quantityInput = document.querySelector(
+          'form[action*="/cart/add"] input[name="quantity"]'
+        );
+
+        if (quantityInput) {
+
+          quantityInput.value = quantity;
+
+          quantityInput.dispatchEvent(
+            new Event('input', { bubbles: true })
+          );
+
+          quantityInput.dispatchEvent(
+            new Event('change', { bubbles: true })
+          );
+
+        }
+
+      }
+
+      if (qtyMinus) {
+
+        qtyMinus.addEventListener('click', function () {
+
+          if (quantity > 1) {
+            quantity--;
+            updateQuantity();
+          }
+
+        });
+
+      }
+
+      if (qtyPlus) {
+
+        qtyPlus.addEventListener('click', function () {
+
+          quantity++;
+          updateQuantity();
+
+        });
+
+      }
+
+    });
+
+  }
+
+
+  /* PAGE LOAD */
+
+  if (document.readyState === 'loading') {
+
+    document.addEventListener(
+      'DOMContentLoaded',
+      initQtyPickers
+    );
+
+  } else {
+
+    initQtyPickers();
+
+  }
+
+
+  /* SHOPIFY DYNAMIC CONTENT */
+
+  setTimeout(initQtyPickers, 500);
+
+})();
+</script>
+
+
+{% schema %}
+{
+  "name": "t:names.add_to_cart",
+  "tag": null,
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:settings.product"
+    },
+    {
+      "type": "select",
+      "id": "style_class",
+      "label": "t:settings.style",
+      "options": [
+        {
+          "value": "button",
+          "label": "t:options.primary"
+        },
+        {
+          "value": "button-secondary",
+          "label": "t:options.secondary"
+        }
+      ],
+      "default": "button-secondary"
+    }
+  ]
+}
+{% endschema %}

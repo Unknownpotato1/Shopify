@@ -1,0 +1,106 @@
+{% liquid
+  assign badge_variant = product.selected_or_first_available_variant
+  assign badge_price = badge_variant.price
+  assign badge_compare_at = badge_variant.compare_at_price
+  assign show_discount = false
+
+  if badge_compare_at and badge_compare_at > badge_price
+    assign discount_amount = badge_compare_at | minus: badge_price
+    assign discount_percent = discount_amount | times: 100.0 | divided_by: badge_compare_at | round
+    assign show_discount = true
+  endif
+%}
+
+{% if show_discount or product.tags contains 'badge:Anti-Tarnish' or product.tags contains 'badge:Trending' or product.tags contains 'badge:Hot Selling' %}
+  <div class="custom-product-badges">
+
+    {% if show_discount %}
+      <span class="custom-product-badge badge-discount">
+        {{ discount_percent }}% OFF
+      </span>
+    {% endif %}
+
+    {% if product.tags contains 'badge:Anti-Tarnish' %}
+     <span class="custom-product-badge badge-anti-tarnish"
+      style="background-color: #ffef0aff !important; color: #000000ff !important;">
+  Anti-Tarnish
+</span>
+    {% endif %}
+
+    {% if product.tags contains 'badge:Trending' %}
+      <span class="custom-product-badge badge-trending">
+        Trending
+      </span>
+    {% endif %}
+
+    {% if product.tags contains 'badge:Hot Selling' %}
+      <span class="custom-product-badge badge-hot-selling">
+        Hot Selling
+      </span>
+    {% endif %}
+
+  </div>
+{% endif %}
+
+<style>
+  .custom-product-badges {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    pointer-events: none;
+  }
+
+  .custom-product-badge {
+    display: inline-block;
+    padding: 6px 9px;
+    border-radius: 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 0.8;
+    letter-spacing: 0.2px;
+  }
+
+  .badge-discount {
+    background: #399b50;
+    color: #ffffff;
+  }
+
+  .badge-anti-tarnish {
+  background-color: #ff0000 !important;
+  color: #ffffff !important;
+}
+
+.badge-trending {
+  background-color: #3cb371 !important;
+  color: #ffffff !important;
+}
+
+.badge-hot-selling {
+  background-color: #f75008ff !important;
+  color: #ffffff !important;
+}
+
+.badge-discount {
+  background-color: #399b50 !important;
+  color: #ffffff !important;
+}
+  }
+
+  @media screen and (max-width: 749px) {
+    .custom-product-badges {
+      top: 10px;
+      left: 10px;
+      gap: 4px;
+    }
+
+    .custom-product-badge {
+      font-size: 11px;
+      padding: 5px 7px;
+    }
+  }
+</style>
