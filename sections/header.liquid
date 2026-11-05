@@ -254,6 +254,19 @@
 ></script>
 
 {% stylesheet %}
+      /* ============================================================
+         TEST OVERRIDE — header background forced to red
+         Added by Z.ai for header color test.
+         Safe to remove: just delete this block.
+         ============================================================ */
+      .header,
+      .header__row,
+      #header-component {
+        --header-bg-color: #e53935 !important;       /* forces red bg, overrides transparent state */
+        --color-background: #e53935 !important;       /* overrides the color-scheme bg */
+        background-color: #e53935 !important;         /* belt + suspenders */
+      }
+      /* End test override */
       body {
         --header-height: 0px;
         --header-group-height: var(--header-height);
