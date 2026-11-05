@@ -253,6 +253,29 @@
   body:has(#header-group #header-component[data-sticky-state='active']) .product-details.sticky-content--desktop {
     --sticky-header-offset: var(--header-height);
   }
+
+      /* === AJ-Inspired Product Page Button Overrides ===
+         Scoped to product-information section so the rest of the store keeps
+         the rounded global button style. Matches the Anushka Jain reference:
+         sharp corners, 1px warm-brown border on the primary button.
+         Safe to remove: delete this whole comment + the rules below it. */
+      .product-information .button,
+      .product-information button[type="submit"],
+      .product-information .product-form__submit,
+      .product-information .shopify-payment-button button {
+        border-radius: 0 !important;
+        border-width: 1px !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+        font-weight: 700 !important;
+      }
+      /* Variant selector buttons — also sharp corners to match */
+      .product-information .variant-button,
+      .product-information [data-variant-button] {
+        border-radius: 0 !important;
+      }
+      /* End AJ-inspired button overrides */
+
 {% endstylesheet %}
 
 {% schema %}
