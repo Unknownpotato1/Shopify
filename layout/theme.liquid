@@ -46,19 +46,6 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.105em !important;
   text-transform: uppercase !important;
   line-height: 1.3 !important;
-  color: #332923 !important;
-}
-
-/* Product dropdown/accordion titles — match Anushka Jain look */
-.details__header,
-.accordion__toggle,
-.accordion__title {
-  font-family: 'Manrope', sans-serif !important;
-  font-weight: 700 !important;
-  font-size: 11px !important;
-  letter-spacing: 0.105em !important;
-  text-transform: uppercase !important;
-  line-height: 1.3 !important;
   color: #543a2d !important;
 }
 
@@ -140,23 +127,43 @@ details .rte {
 <script>
 (function () {
 
+  // === Eviola sticky chat + wishlist icons ===
+  // Original implementation used a body-wide MutationObserver (subtree: true)
+  // that fired on every DOM mutation. On a product page, tapping a variant
+  // triggers ~5 DOM mutations (variant picker morph, media-gallery replace,
+  // price replace, inventory morph, ATC button morph) — so the observer fired
+  // 5+ times per tap, each doing 3 full-document querySelector scans, causing
+  // the freeze on mobile.
+  //
+  // Fix:
+  //   1. Debounce the observer (rapid mutations = one callback)
+  //   2. Cheap early-exit before any DOM scan
+  //   3. Disconnect after icons are added (bar is rendered once)
+  //   4. Re-observe briefly if the bar ever disappears (app may re-create it)
+
+  var observer = null;
+  var debounceTimer = null;
+
   function addEviolaStickyIcons() {
+    // Cheap early-exit before any DOM scan
+    if (!document.body) return;
 
-    const bar = document.querySelector('.smart-sticky-buy-bar');
+    // Single cheap query — if no bar or icons already present, exit
+    var bar = document.querySelector('.smart-sticky-buy-bar');
+    if (!bar || bar.querySelector('.eviola-sticky-icon')) {
+      // If we previously added icons and the bar is gone, re-arm the observer
+      if (!bar && observer) { restartObserverBriefly(); }
+      return;
+    }
 
-    if (!bar || bar.querySelector('.eviola-sticky-icon')) return;
-
-    const addButton = bar.querySelector('.smart-sticky-add');
-
+    var addButton = bar.querySelector('.smart-sticky-add');
     if (!addButton) return;
 
     // QUICK CHAT BUTTON
-    const chat = document.createElement('button');
-
+    var chat = document.createElement('button');
     chat.type = 'button';
     chat.className = 'eviola-sticky-icon';
     chat.setAttribute('aria-label', 'Quick Chat');
-
     chat.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none"
         stroke="#5E4231" stroke-width="1.7"
@@ -166,23 +173,16 @@ details .rte {
         <path d="M8 14h5"/>
       </svg>
     `;
-
-   chat.addEventListener('click', function () {
-  const chatWindow = document.querySelector('[data-chat-window]');
-
-  if (chatWindow) {
-    chatWindow.classList.add('show');
-  }
-});
-
+    chat.addEventListener('click', function () {
+      var chatWindow = document.querySelector('[data-chat-window]');
+      if (chatWindow) chatWindow.classList.add('show');
+    });
 
     // WISHLIST BUTTON
-    const wishlist = document.createElement('button');
-
+    var wishlist = document.createElement('button');
     wishlist.type = 'button';
     wishlist.className = 'eviola-sticky-icon';
     wishlist.setAttribute('aria-label', 'Wishlist');
-
     wishlist.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none"
         stroke="#5E4231" stroke-width="1.7"
@@ -190,41 +190,64 @@ details .rte {
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
       </svg>
     `;
-
-  wishlist.addEventListener('click', function () {
-
-  const svg = wishlist.querySelector('svg');
-  const path = svg.querySelector('path');
-
-  const filled = wishlist.classList.toggle('heart-filled');
-
-  svg.style.setProperty('fill', filled ? '#5E4231' : 'none', 'important');
-
-  path.style.setProperty('fill', filled ? '#5E4231' : 'none', 'important');
-
-});
-
+    wishlist.addEventListener('click', function () {
+      var svg = wishlist.querySelector('svg');
+      var path = svg.querySelector('path');
+      var filled = wishlist.classList.toggle('heart-filled');
+      svg.style.setProperty('fill', filled ? '#5E4231' : 'none', 'important');
+      path.style.setProperty('fill', filled ? '#5E4231' : 'none', 'important');
+    });
 
     // INSERT ICONS BEFORE ADD TO CART
     bar.insertBefore(chat, addButton);
     bar.insertBefore(wishlist, addButton);
 
+    // Icons added — disconnect the observer so it stops firing on every
+    // subsequent DOM mutation (variant taps, scroll, etc.)
+    if (observer) { observer.disconnect(); observer = null; }
   }
 
+  // Debounced wrapper: collapses rapid mutations into a single callback.
+  // The original implementation fired once per mutation; this fires once per
+  // burst (e.g., one burst of variant-update mutations = one callback).
+  function debouncedAddIcons() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      debounceTimer = null;
+      addEviolaStickyIcons();
+    }, 120);
+  }
 
+  // Start (or restart) the observer. We watch body with childList + subtree
+  // because the smart-sticky-buy-bar can be inserted deep in the DOM by an app.
+  function startObserver() {
+    if (observer) return;
+    observer = new MutationObserver(debouncedAddIcons);
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  // If the bar disappears after we've added icons (e.g., an app re-creates it),
+  // re-arm the observer for a short window to re-inject.
+  function restartObserverBriefly() {
+    startObserver();
+    setTimeout(function () {
+      if (observer) { observer.disconnect(); observer = null; }
+    }, 3000);
+  }
+
+  // Initial run + start observer
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', addEviolaStickyIcons);
+    document.addEventListener('DOMContentLoaded', function () {
+      addEviolaStickyIcons();
+      // Only start the observer if icons weren't added yet (bar might appear later)
+      var bar = document.querySelector('.smart-sticky-buy-bar');
+      if (!bar || !bar.querySelector('.eviola-sticky-icon')) startObserver();
+    });
   } else {
     addEviolaStickyIcons();
+    var bar = document.querySelector('.smart-sticky-buy-bar');
+    if (!bar || !bar.querySelector('.eviola-sticky-icon')) startObserver();
   }
-
-  // Handle dynamically created sticky bars
-  const observer = new MutationObserver(addEviolaStickyIcons);
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
 
 })();
 </script>
