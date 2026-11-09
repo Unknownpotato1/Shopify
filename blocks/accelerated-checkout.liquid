@@ -676,15 +676,23 @@
 
       /* WATCH ORIGINAL BUTTON STATE */
 
-      const mutationObserver = new MutationObserver(function () {
-        syncButtons();
-      });
+      // Debounced — morph can fire many class changes in quick succession.
+      var acDebounceTimer = null;
+      function debouncedSyncButtons() {
+        if (acDebounceTimer) return;
+        acDebounceTimer = setTimeout(function () {
+          acDebounceTimer = null;
+          syncButtons();
+        }, 120);
+      }
+
+      const mutationObserver = new MutationObserver(debouncedSyncButtons);
 
       mutationObserver.observe(originalButtons, {
         subtree: true,
         childList: true,
         attributes: true,
-        attributeFilter: ['disabled', 'class']
+        attributeFilter: ['disabled', 'class', 'aria-disabled']
       });
 
 

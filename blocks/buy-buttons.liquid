@@ -633,16 +633,28 @@
   /*
    * Shopify can replace/update buttons when
    * the customer changes a variant.
+   *
+   * The morph that runs on a variant change can fire many mutations in
+   * quick succession (class changes on the ATC button, etc.). Debounce
+   * the observer callback so we run updateStickyState at most once per
+   * 120ms burst instead of once per mutation.
    */
-  const buttonObserver = new MutationObserver(function () {
-    updateStickyState();
-  });
+  var bbDebounceTimer = null;
+  function debouncedUpdateStickyState() {
+    if (bbDebounceTimer) return;
+    bbDebounceTimer = setTimeout(function () {
+      bbDebounceTimer = null;
+      updateStickyState();
+    }, 120);
+  }
+
+  const buttonObserver = new MutationObserver(debouncedUpdateStickyState);
 
   buttonObserver.observe(originalButtons, {
     subtree: true,
     childList: true,
     attributes: true,
-    attributeFilter: ['disabled', 'class']
+    attributeFilter: ['disabled', 'class', 'aria-disabled']
   });
 
 })();

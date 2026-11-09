@@ -8,11 +8,11 @@
 
 <style>
 #quick-add-dialog .shiprocket-headless {
-    display:none !important ; 
-} 
-.full-width img { 
-    width:fit-content !important ; 
-} 
+    display:none !important ;
+}
+.full-width img {
+    width:fit-content !important ;
+}
  .shiprocket-headless{
   width:100%;
  }
@@ -24,19 +24,19 @@
    {% if shop.metafields.shiprocketCheckoutButton.shiprocketCheckoutButtonStyles %}
      btnStyles = {{ shop.metafields.shiprocketCheckoutButton.shiprocketCheckoutButtonStyles }}
    {%  endif %}
-       
+
    if (btnStyles && typeof btnStyles === 'object') {
      const styleElement = document.createElement("style");
      styleElement.type = "text/css";
      let cssRules = "";
- 
+
      Object.entries(btnStyles).forEach(([className, styles]) => {
        // Convert styles object to CSS rules with !important
        const stylesString = Object.entries(styles)
          .filter(([key]) => key !== "text" && key !== "animation") // Exclude text and animation
          .map(([key, value]) => `${key}: ${value} !important;`)
          .join(" ");
- 
+
        // Define the animation keyframes if needed
        let animationRule = "";
        if (styles.animation === "horizontal-jiggle") {
@@ -49,18 +49,18 @@
            }
          `;
        }
- 
+
        // Base CSS rule for the class
        let cssRule = `
          ${animationRule}
- 
+
          .${className} {
            ${stylesString}
            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
            ${styles.animation === "horizontal-jiggle" ? "animation: horizontal-jiggle 1s ease-in-out infinite;" : ""}
          }
        `;
- 
+
        // If 'text' key exists, append additional CSS rules
        if (styles.text) {
          cssRule += `
@@ -72,10 +72,10 @@
            }
          `;
        }
- 
+
        cssRules += cssRule;
      });
- 
+
      // Set the CSS rules in the style element
      styleElement.textContent = cssRules;
      // Append the style element to the head
@@ -84,20 +84,78 @@
  </script>
   <!-- BTN - CUST - SCRIPT - END  -->
  <script>
- const observer = new MutationObserver(() => {
-  const fastrrContainer = document.getElementById('fastrr-main-container');
-  const cartDrawer = document.querySelector('.cart-drawer__dialog');
-  // Only proceed if both exist and the cart drawer is open
-  if (fastrrContainer && cartDrawer?.hasAttribute('open')) {
-   const closeBtn = document.querySelector('.cart-drawer__close-button');
-   if (closeBtn) {
-    closeBtn.click();
-   }
+// ============================================================
+// Fastrr / cart-drawer auto-close observer
+// ============================================================
+//
+// PURPOSE: When the Fastrr container appears AND the cart drawer is
+// open, click the close button (so the Fastrr button shows).
+//
+// ORIGINAL implementation: observer.observe(document.body,
+// { childList: true, subtree: true }). This fired on EVERY mutation
+// anywhere on the page. During a variant swap, the theme fires
+// hundreds of mutations (variant picker morph, media-gallery
+// replace, price replace, inventory morph, ATC button morph) —
+// so the observer fired hundreds of times, each running 2+
+// querySelector scans, contributing to the freeze on mobile.
+//
+// FIX:
+//   1. Cheap early-exit BEFORE any DOM scan: bail if the cart
+//      drawer element isn't even in the DOM yet (no Fastrr to
+//      interact with).
+//   2. Debounce the callback (200ms) so rapid mutations collapse
+//      into a single check.
+//   3. Only do the close-button click ONCE per cart-drawer open
+//      session (avoid re-firing on every subsequent mutation when
+//      there's nothing more to do).
+//   4. Reset the "already fired" flag when the cart drawer closes
+//      so we can fire again next time it opens.
+// ============================================================
+(function () {
+
+  var srDebounceTimer = null;
+  var srCloseAlreadyFired = false;
+
+  function srCheck() {
+    if (srDebounceTimer) return;
+    srDebounceTimer = setTimeout(function () {
+      srDebounceTimer = null;
+
+      // Cheap early exit — no point doing anything if cart drawer isn't even in the DOM
+      var cartDrawer = document.querySelector('.cart-drawer__dialog');
+      if (!cartDrawer) return;
+
+      // If the cart drawer is closed, reset the "already fired" flag and exit.
+      if (!cartDrawer.hasAttribute('open')) {
+        srCloseAlreadyFired = false;
+        return;
+      }
+
+      // Cart drawer is open. Have we already closed it for this session?
+      if (srCloseAlreadyFired) return;
+
+      // Has Fastrr rendered its container yet?
+      var fastrrContainer = document.getElementById('fastrr-main-container');
+      if (!fastrrContainer) return;
+
+      // Both conditions met — close the cart drawer so Fastrr shows
+      var closeBtn = document.querySelector('.cart-drawer__close-button');
+      if (closeBtn) {
+        closeBtn.click();
+        srCloseAlreadyFired = true;
+      }
+    }, 200);
   }
- });
- // Start observing the document body continuously
- observer.observe(document.body, {
-  childList: true,
-  subtree: true,
- });
+
+  // We still need subtree:true to catch the Fastrr container appearing
+  // deep in the DOM (Fastrr injects it anywhere). But the debounce + early
+  // exits above mean we only do real work once per 200ms burst, not once
+  // per mutation.
+  var observer = new MutationObserver(srCheck);
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+})();
 </script>
