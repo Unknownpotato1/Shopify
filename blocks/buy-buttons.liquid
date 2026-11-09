@@ -590,17 +590,39 @@
   /*
    * Keep sticky buttons disabled when the
    * original Add to Cart button is disabled.
+   *
+   * The theme no longer uses the native `disabled` property on the ATC
+   * button (see product-form.js disable/enable); instead it toggles the
+   * `aria-disabled` attribute and `is-disabled` class. So we check both
+   * the native property (for backward compat) AND the aria attribute.
    */
   function updateStickyState() {
 
     if (realAddToCart) {
-      stickyAdd.disabled = realAddToCart.disabled;
+      const isDisabled = realAddToCart.disabled ||
+        realAddToCart.hasAttribute('aria-disabled') ||
+        realAddToCart.classList.contains('is-disabled');
+      // Use aria-disabled + class on the sticky buttons too (avoids the same
+      // :disabled style-recalc freeze on the sticky bar buttons).
+      if (isDisabled) {
+        stickyAdd.setAttribute('aria-disabled', 'true');
+        stickyAdd.classList.add('is-disabled');
+      } else {
+        stickyAdd.removeAttribute('aria-disabled');
+        stickyAdd.classList.remove('is-disabled');
+      }
     }
 
     const realBuyNow = findBuyNowButton();
 
     if (realBuyNow) {
-      stickyBuy.disabled = realBuyNow.disabled;
+      const buyNowDisabled = realBuyNow.disabled ||
+        realBuyNow.hasAttribute('aria-disabled');
+      if (buyNowDisabled) {
+        stickyBuy.setAttribute('aria-disabled', 'true');
+      } else {
+        stickyBuy.removeAttribute('aria-disabled');
+      }
     }
   }
 

@@ -522,9 +522,21 @@
 
         if (stickyAddToCart) {
 
-          stickyAddToCart.disabled =
-            !originalAddToCart ||
-            originalAddToCart.disabled;
+          // The theme no longer uses the native `disabled` property on the
+          // ATC button (see product-form.js disable/enable); it toggles
+          // `aria-disabled` + `is-disabled` class. So we check both.
+          const isDisabled = !originalAddToCart ||
+            originalAddToCart.disabled ||
+            originalAddToCart.hasAttribute('aria-disabled') ||
+            originalAddToCart.classList.contains('is-disabled');
+
+          if (isDisabled) {
+            stickyAddToCart.setAttribute('aria-disabled', 'true');
+            stickyAddToCart.classList.add('is-disabled');
+          } else {
+            stickyAddToCart.removeAttribute('aria-disabled');
+            stickyAddToCart.classList.remove('is-disabled');
+          }
 
         }
 

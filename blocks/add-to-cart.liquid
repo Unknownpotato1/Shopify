@@ -176,9 +176,12 @@
   color: #000000 !important;
 }
 
-.add-to-cart-container button.add-to-cart-button:disabled {
+.add-to-cart-container button.add-to-cart-button:disabled,
+.add-to-cart-container button.add-to-cart-button[aria-disabled='true'],
+.add-to-cart-container button.add-to-cart-button.is-disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 

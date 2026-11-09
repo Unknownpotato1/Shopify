@@ -38,16 +38,34 @@ export class AddToCartComponent extends Component {
 
   /**
    * Disables the add to cart button.
+   *
+   * NOTE: We deliberately do NOT use the native `disabled` property here.
+   * Setting `disabled = true` on a button that has the `add-to-cart-button`
+   * class triggers a massive style recalc on this theme (the compiled
+   * stylesheet has ~300 `:has()` rules and ~14 `:has(input:disabled)`
+   * rules; combined with the .add-to-cart-container button.add-to-cart-button
+   * :disabled rule, the recalc cascades into a multi-second freeze on
+   * mobile when the user taps a variant).
+   *
+   * Instead we toggle the `aria-disabled` attribute and `is-disabled` class,
+   * which give the same visual + behavioural effect via CSS without
+   * touching the `:disabled` pseudo-class.
    */
   disable() {
-    this.refs.addToCartButton.disabled = true;
+    const btn = this.refs.addToCartButton;
+    if (!btn) return;
+    btn.setAttribute('aria-disabled', 'true');
+    btn.classList.add('is-disabled');
   }
 
   /**
    * Enables the add to cart button.
    */
   enable() {
-    this.refs.addToCartButton.disabled = false;
+    const btn = this.refs.addToCartButton;
+    if (!btn) return;
+    btn.removeAttribute('aria-disabled');
+    btn.classList.remove('is-disabled');
   }
 
   /**
@@ -310,7 +328,27 @@ class ProductFormComponent extends Component {
 
     // Update the add to cart button text and icon
     if (newAddToCartButton) {
+      // Strip the native `disabled` attribute from BOTH the new (source) and
+      // current (target) buttons before morphing. Otherwise morph's
+      // copyAttributes() will set `disabled` on the current button, which
+      // triggers the massive :disabled style recalc that freezes the page.
+      // We re-apply the disabled visual + behavioural state via class below.
+      const newWasDisabled = newAddToCartButton.hasAttribute('disabled');
+      newAddToCartButton.removeAttribute('disabled');
+      // Also strip from current (in case it was set by a previous render
+      // before our disable/enable methods were updated to use aria-disabled).
+      currentAddToCartButton.removeAttribute('disabled');
+
       morph(currentAddToCartButton, newAddToCartButton);
+
+      // Re-apply disabled state via aria-disabled + class (the no-freeze way)
+      if (newWasDisabled) {
+        currentAddToCartButton.setAttribute('aria-disabled', 'true');
+        currentAddToCartButton.classList.add('is-disabled');
+      } else {
+        currentAddToCartButton.removeAttribute('aria-disabled');
+        currentAddToCartButton.classList.remove('is-disabled');
+      }
     }
 
     // Update the variant ID

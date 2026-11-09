@@ -1272,7 +1272,8 @@ input:not(:placeholder-shown)::placeholder {
 
 .button[aria-disabled='true'],
 .button-secondary[aria-disabled='true'],
-.button:disabled {
+.button:disabled,
+.button.is-disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
