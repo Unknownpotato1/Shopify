@@ -632,18 +632,63 @@
 
 
   /* Watch sticky bar changes */
+  // ORIGINAL implementation observed document.documentElement with subtree:true
+  // AND attributeFilter:['class','style']. This fired on EVERY class/style
+  // change anywhere in the entire document — including the cascade of style
+  // mutations the theme makes when morphing the variant picker, media
+  // gallery, price, inventory, and ATC button on a variant tap. Each fire
+  // called updateFooterSpace() which calls getBoundingClientRect() — a
+  // synchronous layout reflow. The reflow itself triggers more style
+  // mutations → observer fires again → infinite cascade → page freezes.
+  //
+  // Fix:
+  //   1. Only observe the sticky bar element itself (the only thing whose
+  //      `is-visible` class matters), not the whole document.
+  //   2. Only watch `class` (we don't care about `style`).
+  //   3. Debounce the callback so rapid mutations collapse into one.
+  //   4. Read getBoundingClientRect() inside requestAnimationFrame so it
+  //      never forces layout during the mutation callback.
 
-  var observer = new MutationObserver(function () {
-    updateFooterSpace();
+  var footerObserverTimer = null;
+  function debouncedUpdateFooterSpace() {
+    if (footerObserverTimer) return;
+    footerObserverTimer = setTimeout(function () {
+      footerObserverTimer = null;
+      requestAnimationFrame(updateFooterSpace);
+    }, 120);
+  }
+
+  var footerObserver = new MutationObserver(debouncedUpdateFooterSpace);
+
+  function attachFooterObserver() {
+    var stickyBar = getStickyBar();
+    if (!stickyBar) {
+      // If the sticky bar isn't in the DOM yet, watch body childList for it
+      // to appear. Once it does, switch to observing the sticky bar itself.
+      return;
+    }
+    footerObserver.observe(stickyBar, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
+  attachFooterObserver();
+
+  // If the sticky bar is added/removed dynamically, re-attach. Watch body
+  // childList only (cheap — fires only when something is added/removed at
+  // body level, not on every attribute change).
+  var stickyBarWatcher = new MutationObserver(function () {
+    var current = getStickyBar();
+    if (current) {
+      try { footerObserver.disconnect(); } catch (e) {}
+      footerObserver.observe(current, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
   });
-
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['class', 'style']
-  });
+  stickyBarWatcher.observe(document.body, { childList: true, subtree: false });
 
 
   /* Page load */
